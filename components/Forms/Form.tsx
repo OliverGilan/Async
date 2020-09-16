@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { FunctionComponent } from "react";
+import { MappedDropdown } from "../FormElements/Dropdown/main";
+import { InputList } from "../InputList/main";
 
-interface FormInputs {
+export interface FormProps {
 	onSubmit: Function;
 }
 
-const Form: FunctionComponent<FormInputs> = (props) => {
+const Form: FunctionComponent<FormProps> = (props) => {
 	return (
 		<form className="form" onSubmit={() => props.onSubmit}>
 			{props.children}
@@ -13,16 +15,4 @@ const Form: FunctionComponent<FormInputs> = (props) => {
 	);
 };
 
-export const NewMeetingForm: FunctionComponent<FormInputs> = (props) => {
-	const [title, setTitle] = useState("");
-
-	function submitForm(event: React.FormEvent) {
-		let formState = {};
-		props.onSubmit(formState);
-	}
-	return (
-		<div className="new-meeting-form">
-			<Form onSubmit={submitForm}></Form>
-		</div>
-	);
-};
+export default Form;

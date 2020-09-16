@@ -1,6 +1,6 @@
 import Head from "next/head";
 import styles from "../styles/Dashboard.module.css";
-import Button from "../components/primary_button/main";
+import Button from "../components/Buttons/main";
 import { useRouter } from "next/router";
 
 export default function Home() {
