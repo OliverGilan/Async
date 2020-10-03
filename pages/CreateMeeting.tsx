@@ -37,6 +37,7 @@ export default function CreateMeetingPage(props) {
 	const [videos, setVideos] = useState([]);
 	const [audioStream, setAudioStream] = useState(null);
 	const [webcamStream, setWebcam] = useState(null);
+	const [screenCap, setScreenCap] = useState(null);
 	// const [dragStart, drag, dragEnd, dragOver] = useDraggable(110, 110);
 
 	useEffect(() => {
@@ -82,6 +83,23 @@ export default function CreateMeetingPage(props) {
 		}
 	};
 
+	const changeScreenCap = () => {
+		console.log("yeet");
+		const gdmOptions = {
+			video: {
+				cursor: "always",
+			},
+			audio: {
+				echoCancellation: true,
+				noiseSuppression: true,
+				sampleRate: 44100,
+			},
+		};
+		let md = navigator.mediaDevices as any;
+		console.log(md);
+		md.getDisplayMedia(gdmOptions).then((stream) => setScreenCap(stream));
+	};
+
 	return (
 		<div>
 			<Head>
@@ -117,42 +135,32 @@ export default function CreateMeetingPage(props) {
 						</select>
 					</label>
 				</aside>
-				<div className="new-meeting-content h-full flex-2 relative flex flex-row justify-center">
-					<div className="self-end m-24">
+				<div className="new-meeting-content h-full flex-2 relative flex flex-row justify-center items-center">
+					<div className="buttons border-2 border-green-500 ">
+						<button
+							className="add-screencap-btn"
+							onClick={() => changeScreenCap()}
+						>
+							Add Screencap
+						</button>
+					</div>
+					<div className="absolute self-end m-24 border-2 border-red-500">
 						<Button.Outline text="Start Meeting" />
 					</div>
-					{/* {addOns.length === 0 && (
-						<div className="border-2 border-green-500">
-							<button className="add-webcam-btn" onClick={() => addWebcam}>
-								Add Webcam
-							</button>{" "}
-							<br />
-							<button
-								className="add-screencap-btn"
-								onClick={() => addScreenCap}
-							>
-								Add Screencap
-							</button>
-							<br />
-							<button className="add-document-btn" onClick={() => addDocument}>
-								Add Document
-							</button>
-							<br />
-						</div>
-					)} */}
 				</div>
-				{webcamStream && (
+				{(webcamStream || screenCap) && (
 					<div className="bg-gray-200 flex-1 h-full border-l-2 border-gray-400 flex flex-col justify-center">
 						<div className="m-6 overflow-hidden">
 							<VideoStreamPlayer
 								stream={webcamStream}
 								inactive="Webcam Stream"
+								flipped
 							/>
 						</div>
 						<div className="m-6">
 							<VideoStreamPlayer
-								stream={webcamStream}
-								inactive="Webcam Stream"
+								stream={screenCap}
+								inactive="ScreenCapture Stream"
 							/>
 						</div>
 					</div>
@@ -161,5 +169,3 @@ export default function CreateMeetingPage(props) {
 		</div>
 	);
 }
-
-function addDocument() {}

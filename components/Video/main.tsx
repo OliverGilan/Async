@@ -3,6 +3,7 @@ import React, { useRef, useState, useEffect, FunctionComponent } from "react";
 interface VideoStreamProps {
 	stream?: MediaStream;
 	inactive?: string;
+	flipped?: boolean;
 }
 
 export const VideoStreamPlayer: FunctionComponent<VideoStreamProps> = (
@@ -20,12 +21,13 @@ export const VideoStreamPlayer: FunctionComponent<VideoStreamProps> = (
 				autoPlay
 				ref={videoRef}
 				className="videoplayer streamplayer"
-				style={{
-					// width: 200,
-					// height: 200,
-					transform: "scaleX(-1)",
-					// position: "absolute",
-				}}
+				style={
+					props.flipped
+						? {
+								transform: "scaleX(-1)",
+						  }
+						: {}
+				}
 			/>
 			{!props.stream && (
 				<p className="videoplayer-inactive">
