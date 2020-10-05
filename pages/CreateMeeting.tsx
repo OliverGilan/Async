@@ -38,7 +38,8 @@ export default function CreateMeetingPage(props) {
 	const [audioStream, setAudioStream] = useState(null);
 	const [webcamStream, setWebcam] = useState(null);
 	const [screenCap, setScreenCap] = useState(null);
-	// const [dragStart, drag, dragEnd, dragOver] = useDraggable(110, 110);
+	const [recording, setRecording] = useState(false);
+	const [recorders, setRecorders] = useState([]);
 
 	useEffect(() => {
 		getDevices("audioinput").then((d) => (d ? setMics(d) : undefined));
@@ -84,7 +85,6 @@ export default function CreateMeetingPage(props) {
 	};
 
 	const changeScreenCap = () => {
-		console.log("yeet");
 		const gdmOptions = {
 			video: {
 				cursor: "always",
@@ -97,7 +97,65 @@ export default function CreateMeetingPage(props) {
 		};
 		let md = navigator.mediaDevices as any;
 		console.log(md);
-		md.getDisplayMedia(gdmOptions).then((stream) => setScreenCap(stream));
+		md.getDisplayMedia(gdmOptions).then((stream) => {
+			setScreenCap(stream);
+			stream.oninactive = () => setScreenCap(null);
+		});
+	};
+
+	const log = (recorder: MediaRecorder, msg?: string) => {
+		if (msg) {
+			console.log(msg);
+		}
+		console.log(recorder.state);
+	};
+
+	const startRecording = () => {
+		if (recording) {
+			return false;
+		}
+
+		let recs = [];
+		let options = {
+			audioBitsPerSecond: 128000,
+			videoBitsPerSecond: 2500000,
+		};
+		for (let stream of [audioStream, webcamStream, screenCap]) {
+			if (stream) {
+				let recorder = new MediaRecorder(stream, options);
+				recs.push(recorder);
+			}
+		}
+		let chunks = new Array(recs.length).fill([]);
+		recs.forEach((r: MediaRecorder, i: number) => {
+			r.ondataavailable = (event: BlobEvent) => {
+				chunks[i].push(event.data);
+				console.log(event.data);
+				//Send chunk to server HERE
+			};
+			r.start(15000);
+			log(r, "recording started");
+		});
+		setRecording(true);
+		setRecorders(recs);
+	};
+
+	const pauseRecording = () => {
+		setRecording(false);
+		recorders.forEach((rec: MediaRecorder, i: number) => {
+			rec.pause();
+			log(rec, "recording paused");
+		});
+	};
+
+	const finishRecording = () => {
+		if (recording) {
+			setRecording(false);
+		}
+		recorders.forEach((rec: MediaRecorder, i: number) => {
+			rec.stop();
+			log(rec, "recording stopped");
+		});
 	};
 
 	return (
@@ -136,7 +194,7 @@ export default function CreateMeetingPage(props) {
 					</label>
 				</aside>
 				<div className="new-meeting-content h-full flex-2 relative flex flex-row justify-center items-center">
-					<div className="buttons border-2 border-green-500 ">
+					<div className="buttons border-2">
 						<button
 							className="add-screencap-btn"
 							onClick={() => changeScreenCap()}
@@ -144,8 +202,22 @@ export default function CreateMeetingPage(props) {
 							Add Screencap
 						</button>
 					</div>
-					<div className="absolute self-end m-24 border-2 border-red-500">
-						<Button.Outline text="Start Meeting" />
+					<div className="absolute self-end m-24">
+						{recording && (
+							<Button.Outline
+								text="Pause Meeting"
+								onClick={() => pauseRecording()}
+							/>
+						)}
+						{!recording && recorders.length == 0 && (
+							<Button.Outline
+								text="Start Meeting"
+								onClick={() => startRecording()}
+							/>
+						)}
+						{!recording && recorders.length > 0 && (
+							<Button.Outline text="Resume Meeting" />
+						)}
 					</div>
 				</div>
 				{(webcamStream || screenCap) && (
